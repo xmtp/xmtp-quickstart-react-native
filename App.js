@@ -11,22 +11,25 @@ const App = () => {
     const { data } = event.nativeEvent;
     setResult(data);
   };
-
+  const webapp = require('./xmtp/index.html');
+  
   return (
     <View>
       <WebView
         ref={webView => (this.webView = webView)}
         style={{ flex: 1, marginBottom: 20 }}
-        source={{ SOURCE_REPLACE_ME }}
+        source={{ webapp }}
         onMessage={event => {
           const { data } = event.nativeEvent;
+          // Post message sends it back to react native
           const clientResponseCode = `
                 window.postMessage(${JSON.stringify(data)}, "*");
                 true;
               `;
 
           if (this.webView) {
-            this.webView.injectJavaScript(clientResponseCode);
+            // Put the data into the webview
+            this.webView.injectJavaScript(`add(1)(2);`);
           }
         }}
       />
