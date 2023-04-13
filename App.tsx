@@ -1,10 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React, {useRef, useState} from 'react';
 import {SafeAreaView, Text, Button} from 'react-native';
 import {WebView} from 'react-native-webview';
@@ -17,14 +10,34 @@ function App(): JSX.Element {
   function onPress() {
     console.log('on press called');
     webView.current?.injectJavaScript(`
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        key: "sup hi its gonna work"
-      }), "*")
+      window.add(1)(2)
 
       true
     `);
-    // setResult('helo world');
   }
+
+
+  let HTML = `
+    <html>
+      <head>
+          <script src="https://unpkg.com/@xmtp/xmtp-js@7.14.2/dist/umd/index.js"></script>
+          <script src="./xmtp.js"></script>
+      </head>
+      <body>
+      </body>
+    </html>
+    `;
+
+  let jsCode = `
+    var add = function (x) {
+        return function (y) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+                key: x+y
+            }), "*");
+            return true; 
+        };
+    }
+  `;
 
   return (
     <SafeAreaView>
@@ -33,10 +46,13 @@ function App(): JSX.Element {
       <WebView
         ref={webView}
         style={{flex: 1, marginBottom: 20}}
-        source={{html}}
+        source={{ html: HTML }}
+        javaScriptEnabled={true}
         onLoad={() => {
           console.log('webview loaded');
         }}
+        injectedJavaScript={jsCode}
+        originWhitelist={["*"]}
         onMessage={event => {
           console.log('onMessage called');
           const {data} = event.nativeEvent;
@@ -44,15 +60,6 @@ function App(): JSX.Element {
           const result = JSON.parse(data);
 
           setResult(result.key);
-          // // Post message sends it back to react native
-          // const clientResponseCode = `
-          //       window.postMessage(${JSON.stringify(data)}, "*");
-          //       true;
-          //     `;
-          // if (this.webView) {
-          //   // Put the data into the webview
-          //   this.webView.injectJavaScript(`add(1)(2);`);
-          // }
         }}
       />
     </SafeAreaView>
