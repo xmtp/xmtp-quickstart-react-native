@@ -1,65 +1,88 @@
-import React, {useRef, useState} from 'react';
-import {SafeAreaView, Text, Button} from 'react-native';
-import {WebView} from 'react-native-webview';
-import html from './xmtp/index.html';
+import React, { useRef, useState } from "react";
+import { SafeAreaView, Text, Button } from "react-native";
+import { WebView } from "react-native-webview";
+import html from "./html/dist/index.html";
+
+let id = 0;
+const promises = {} as {
+  [key: string]: [(arg: any) => void, (arg: any) => void];
+};
+
+type WebviewResponse = {
+  id: string;
+  error: string | undefined;
+  result: any;
+};
 
 function App(): JSX.Element {
   const webView = useRef<WebView | null>(null);
-  const [result, setResult] = useState('hi pat');
+  const [result, setResult] = useState("hi pat");
 
-  function onPress() {
-    console.log('on press called');
-    webView.current?.injectJavaScript(`
-      window.add(1)(2)
+  async function callIntoWebview<T>(command: string, ...args: any): Promise<T> {
+    id++;
+    return new Promise<T>((resolve, reject) => {
+      webView.current?.injectJavaScript(`
+      window.global.handle("${id}", ${JSON.stringify(
+        command
+      )}, ${JSON.stringify(args)})
 
       true
     `);
+
+      promises[String(id)] = [resolve, reject];
+    });
   }
 
-
-  let HTML = `
-    <html>
-      <head>
-          <script src="https://unpkg.com/@xmtp/xmtp-js@7.14.2/dist/umd/index.js"></script>
-          <script src="./xmtp.js"></script>
-      </head>
-      <body>
-      </body>
-    </html>
-    `;
-
-  let jsCode = `
-    var add = function (x) {
-        return function (y) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-                key: x+y
-            }), "*");
-            return true; 
-        };
-    }
-  `;
+  function onPress(command: string) {
+    return async () => {
+      if (command === "ping") {
+        const res: string = await callIntoWebview(command);
+        setResult(res);
+      } else if (command === "echo") {
+        const res: string = await callIntoWebview(command, "yo yo yo");
+        setResult(res);
+      } else if (command === "fakeWallet") {
+        const res: [any] = await callIntoWebview(command);
+        console.log("got res", res);
+        setResult(JSON.stringify(res));
+      }
+    };
+  }
 
   return (
     <SafeAreaView>
-      <Text style={{marginTop: 100}}>{result}</Text>
-      <Button title="Press me" onPress={onPress} />
+      <Text style={{ marginTop: 100 }}>{result}</Text>
+      <Button title="Ping" onPress={onPress("ping")} />
+      <Button title="Echo" onPress={onPress("echo")} />
+      <Button title="Fake wallets" onPress={onPress("fakeWallet")} />
       <WebView
         ref={webView}
-        style={{flex: 1, marginBottom: 20}}
-        source={{ html: HTML }}
+        style={{ flex: 1, marginBottom: 20 }}
+        // source={{ uri: "http://localhost:5173/" }}
+        source={html}
         javaScriptEnabled={true}
         onLoad={() => {
-          console.log('webview loaded');
+          console.log("webview loaded");
         }}
-        injectedJavaScript={jsCode}
+        onError={(e) => {
+          console.log("WEBVIEW ERR", e);
+        }}
         originWhitelist={["*"]}
-        onMessage={event => {
-          console.log('onMessage called');
-          const {data} = event.nativeEvent;
-          console.log('got a message', data);
-          const result = JSON.parse(data);
+        onMessage={(event) => {
+          const { data } = event.nativeEvent;
+          console.log("got a message", data);
+          const response: WebviewResponse = JSON.parse(data);
 
-          setResult(result.key);
+          const [resolve, reject] = promises[response.id];
+
+          if (response.error) {
+            console.log("oh no error", response.error);
+            reject(new Error(response.error));
+          } else {
+            resolve(JSON.parse(response.result));
+          }
+
+          delete promises[response.id];
         }}
       />
     </SafeAreaView>
