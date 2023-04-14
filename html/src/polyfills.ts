@@ -10,6 +10,8 @@ window.process = window.process ?? { env: {} }; // Minimal process polyfill
 // This is a workaround for a bug in react-native-webview that causes
 // utf16le to be undefined on window. This is a temporary workaround until
 // the bug is fixed upstream.
+// From https://github.com/ldthomas/apg-js/blob/e0217dd27bb4216da4adf52a616f5e55acd5e2da/src/apg-conv-api/transformers.js
+// See also https://github.com/ldthomas/apg-js/issues/13
 const mask = [0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023];
 window.utf16le = window.utf16le ?? {
   encode(chars) {
