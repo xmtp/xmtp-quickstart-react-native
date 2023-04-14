@@ -1,6 +1,13 @@
 export declare global {
   interface Window {
     handle: any;
+    utf16le: any;
+  }
+}
+
+export declare global {
+  interface Document {
+    handle: any;
   }
 }
 

@@ -22,9 +22,9 @@ function App(): JSX.Element {
     id++;
     return new Promise<T>((resolve, reject) => {
       webView.current?.injectJavaScript(`
-      window.global.handle("${id}", ${JSON.stringify(
-        command
-      )}, ${JSON.stringify(args)})
+      document.handle("${id}", ${JSON.stringify(command)}, ${JSON.stringify(
+        args
+      )})
 
       true
     `);
@@ -43,7 +43,6 @@ function App(): JSX.Element {
         setResult(res);
       } else if (command === "fakeWallet") {
         const res: [any] = await callIntoWebview(command);
-        console.log("got res", res);
         setResult(JSON.stringify(res));
       }
     };
@@ -51,27 +50,26 @@ function App(): JSX.Element {
 
   return (
     <SafeAreaView>
-      <Text style={{ marginTop: 100 }}>{result}</Text>
-      <Button title="Ping" onPress={onPress("ping")} />
-      <Button title="Echo" onPress={onPress("echo")} />
-      <Button title="Fake wallets" onPress={onPress("fakeWallet")} />
       <WebView
+        style={{ flex: 1, height: 300, width: 300 }}
         ref={webView}
-        style={{ flex: 1, marginBottom: 20 }}
+        // style={{ flex: 1, marginBottom: 20 }}
         // source={{ uri: "http://localhost:5173/" }}
-        source={html}
+        source={require("./html/dist/index.html")}
         javaScriptEnabled={true}
-        onLoad={() => {
-          console.log("webview loaded");
+        onLoad={(e) => {
+          console.log("webview loaded", e.target.toString());
         }}
-        onError={(e) => {
-          console.log("WEBVIEW ERR", e);
+        onError={(syntheticEvent) => {
+          const { nativeEvent } = syntheticEvent;
+          console.warn("WebView error: ", nativeEvent);
         }}
         originWhitelist={["*"]}
         onMessage={(event) => {
           const { data } = event.nativeEvent;
           console.log("got a message", data);
           const response: WebviewResponse = JSON.parse(data);
+          console.log("got a response", response);
 
           const [resolve, reject] = promises[response.id];
 
@@ -85,6 +83,10 @@ function App(): JSX.Element {
           delete promises[response.id];
         }}
       />
+      <Text style={{ marginTop: 100 }}>{result}</Text>
+      <Button title="Ping" onPress={onPress("ping")} />
+      <Button title="Echo" onPress={onPress("echo")} />
+      <Button title="Fake wallets" onPress={onPress("fakeWallet")} />
     </SafeAreaView>
   );
 }

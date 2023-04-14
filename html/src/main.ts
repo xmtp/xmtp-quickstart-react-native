@@ -4,10 +4,7 @@
 //   </div>
 // `
 
-import "./polyfills";
-import { Wallet } from "@ethersproject/wallet";
-// @ts-ignore: Unreachable code error
-import { Client, Conversation, DecodedMessage } from "@xmtp/xmtp-js";
+import { Wallet, Client } from "./imports";
 
 const commands = {
   ping: async (): Promise<string> => {
@@ -46,7 +43,7 @@ const commands = {
   },
 } as { [key: string]: (...args: any) => Promise<any> };
 
-window.handle = async function (id: string, command: string, args: any) {
+document.handle = async function (id: string, command: string, args: any) {
   const response: {
     id: string;
     error: string | null;
