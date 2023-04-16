@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import { SafeAreaView, Text, Button } from "react-native";
 import { WebView } from "react-native-webview";
-import html from "./html/dist/index.html";
 
 let id = 0;
 const promises = {} as {
@@ -16,7 +15,7 @@ type WebviewResponse = {
 
 function App(): JSX.Element {
   const webView = useRef<WebView | null>(null);
-  const [result, setResult] = useState("hi pat");
+  const [result, setResult] = useState("");
 
   async function callIntoWebview<T>(command: string, ...args: any): Promise<T> {
     id++;
@@ -33,18 +32,10 @@ function App(): JSX.Element {
     });
   }
 
-  function onPress(command: string) {
+  function sendGM() {
     return async () => {
-      if (command === "ping") {
-        const res: string = await callIntoWebview(command);
-        setResult(res);
-      } else if (command === "echo") {
-        const res: string = await callIntoWebview(command, "yo yo yo");
-        setResult(res);
-      } else if (command === "fakeWallet") {
-        const res: [any] = await callIntoWebview(command);
-        setResult(JSON.stringify(res));
-      }
+      const res: [any] = await callIntoWebview("sendGM", "RECIPIENT ADDRESS HERE");
+      setResult(JSON.stringify(res));
     };
   }
 
@@ -53,8 +44,6 @@ function App(): JSX.Element {
       <WebView
         style={{ flex: 1, height: 300, width: 300 }}
         ref={webView}
-        // style={{ flex: 1, marginBottom: 20 }}
-        // source={{ uri: "http://localhost:5173/" }}
         source={require("./html/dist/index.html")}
         javaScriptEnabled={true}
         onLoad={(e) => {
@@ -84,9 +73,7 @@ function App(): JSX.Element {
         }}
       />
       <Text style={{ marginTop: 100 }}>{result}</Text>
-      <Button title="Ping" onPress={onPress("ping")} />
-      <Button title="Echo" onPress={onPress("echo")} />
-      <Button title="Fake wallets" onPress={onPress("fakeWallet")} />
+      <Button title="Send GM from Random Wallet" onPress={sendGM()} />
     </SafeAreaView>
   );
 }

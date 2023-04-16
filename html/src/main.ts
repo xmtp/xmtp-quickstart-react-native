@@ -1,39 +1,19 @@
-// document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-//   <div>
-//     Hi it's a webview
-//   </div>
-// `
-
 import { Wallet, Client } from "./imports";
+let client: Client;
 
 const commands = {
-  ping: async (): Promise<string> => {
-    return "PONG";
-  },
-  echo: async (msg: string): Promise<string> => {
-    return "echo: " + msg;
-  },
-  complicated: async (): Promise<string[]> => {
-    return ["1", "2", "3"];
-  },
-  fakeWallet: async (): Promise<string[]> => {
-    const wallet1 = Wallet.createRandom();
-    const wallet2 = Wallet.createRandom();
+  sendGM: async (recipient: string): Promise<string[]> => {
+    const account = Wallet.createRandom();
 
-    const client1 = await Client.create(wallet1);
-    const client2 = await Client.create(wallet2);
+    client = await Client.create(account);
+    await client.publishUserContact();
 
-    await client1.publishUserContact();
-    await client2.publishUserContact();
-
-    const conversation = await client1.conversations.newConversation(
-      wallet2.address
-    );
-    await conversation.send("hi from the network");
+    const conversation = await client.conversations.newConversation(recipient);
+    await conversation.send("gm from ReactNative");
 
     const result: string[] = [];
 
-    for (const convo of await client2.conversations.list()) {
+    for (const convo of await client.conversations.list()) {
       for (const message of await convo.messages()) {
         result.push(message.content);
       }
