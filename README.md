@@ -1,6 +1,6 @@
 # XMTP Example
 
-This example shows you how to create a basic xmpt react native app that calls through to `xmtp-js` via a webview.
+This example shows you how to create a basic xmpt react native app that calls through to `xmtp-js` via a webview. We are working towards making this more full featured and you can follow the progress here: https://github.com/xmtp/xmtp-quickstart-react-native/issues/2
 
 ***Note: This is necessary because the JS engine React Native uses (Hermes) does not work with our crypto and polyfills (you can see an example using that here: https://github.com/xmtp/example-chat-react-native)***
 
