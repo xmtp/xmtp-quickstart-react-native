@@ -9,7 +9,7 @@ Long term we plan to have a React Native SDK that will be easy to integrate with
 ## 🚀 How to use
 
 - Run `yarn` or `npm install`
-- Run `cd html` to go into the html file
+- Run `cd html` to go into the html folder
 - Run `npm run build` to generate the single page html
 - Run `cd ..` to get back to the main folder
 - Run `cp html/dist/index.html android/app/src/main/assets` to copy the html into a folder android can see
