@@ -1,0 +1,1 @@
+Copy the file from `html/dist/index.html` in this folder.
