@@ -42,7 +42,7 @@ function App(): JSX.Element {
 
   function sendGM() {
     return async () => {
-      const res: [any] = await callIntoWebview("sendGM", "0x33FA52E6a9DBFca57ed277491DBD8Ba5A0B248f4");
+      const res: [any] = await callIntoWebview("sendGM", "RECIPIENT ADDRESS HERE");
       setResult(JSON.stringify(res));
     };
   }
