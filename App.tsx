@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { SafeAreaView, Text, Button } from "react-native";
+import { SafeAreaView, Text, Button, Platform } from "react-native";
 import { WebView } from "react-native-webview";
 
 let id = 0;
@@ -36,21 +36,25 @@ function App(): JSX.Element {
 
       promises[String(id)] = [resolve, reject];
     });
+
+    return Promise.race<T>([promise, timeout]);
   }
 
   function sendGM() {
     return async () => {
-      const res: [any] = await callIntoWebview("sendGM", "RECIPIENT ADDRESS HERE");
+      const res: [any] = await callIntoWebview("sendGM", "0x33FA52E6a9DBFca57ed277491DBD8Ba5A0B248f4");
       setResult(JSON.stringify(res));
     };
   }
+
+  const source = Platform.OS === 'ios' ? require("./html/dist/index.html") : { uri: "file:///android_asset/index.html" }
 
   return (
     <SafeAreaView>
       <WebView
         style={{ flex: 1, height: 300, width: 300 }}
         ref={webView}
-        source={require("./html/dist/index.html")}
+        source={source}
         javaScriptEnabled={true}
         onLoad={(e) => {
           console.log("webview loaded", e.target.toString());

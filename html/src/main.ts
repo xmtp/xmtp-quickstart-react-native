@@ -40,6 +40,6 @@ document.handle = async function (id: string, command: string, args: any) {
   } catch (e) {
     response.error = String(e);
   }
-
-  (window as any).ReactNativeWebView.postMessage(JSON.stringify(response), "*");
+  console.log("about to postMessage", JSON.stringify(response));
+  (window as any).ReactNativeWebView.postMessage(JSON.stringify(response));
 };

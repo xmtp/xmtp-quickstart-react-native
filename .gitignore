@@ -33,6 +33,7 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+android/app/src/main/assets/*.html
 
 # node.js
 #
