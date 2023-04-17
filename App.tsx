@@ -19,7 +19,13 @@ function App(): JSX.Element {
 
   async function callIntoWebview<T>(command: string, ...args: any): Promise<T> {
     id++;
-    return new Promise<T>((resolve, reject) => {
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Promise timed out'));
+      }, 10000);
+    });
+
+    const promise = new Promise<T>((resolve, reject) => {
       webView.current?.injectJavaScript(`
       document.handle("${id}", ${JSON.stringify(command)}, ${JSON.stringify(
         args
