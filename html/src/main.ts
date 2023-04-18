@@ -2,21 +2,22 @@ import { Wallet, Client } from "./imports";
 let client: Client;
 
 const commands = {
-  sendGM: async (recipient: string): Promise<string[]> => {
+  connectRandomWallet: async (): Promise<string> => {
     const account = Wallet.createRandom();
 
     client = await Client.create(account);
     await client.publishUserContact();
 
-    const conversation = await client.conversations.newConversation(recipient);
-    await conversation.send("gm from ReactNative");
-
-    const result: string[] = [];
+    return client.address;
+  },
+  listConversations: async (): Promise<{ [id: string]: string }[]> => {
+    const result: { [id: string]: string }[] = [];
 
     for (const convo of await client.conversations.list()) {
-      for (const message of await convo.messages()) {
-        result.push(message.content);
-      }
+      const convoMap: { [id: string]: string } = {}
+      convoMap['topic'] = convo.topic;
+      convoMap['peerAddress'] = convo.peerAddress;
+      result.push(convoMap);
     }
 
     return result;
