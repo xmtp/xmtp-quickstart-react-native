@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { SafeAreaView, Text, Button, Platform } from "react-native";
+import { SafeAreaView, Text, Button, Platform, FlatList, TouchableOpacity, StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 let id = 0;
@@ -15,7 +15,10 @@ type WebviewResponse = {
 
 function App(): JSX.Element {
   const webView = useRef<WebView | null>(null);
-  const [result, setResult] = useState("");
+  const [addressText, setAddressText] = useState("No Connected Address");
+  const [topic, setTopic] = useState<string | null>(null);
+  const [connected, setConnected] = useState(false);
+  const [conversations, setConversations] = useState<{ [id: string]: string }[] | null>(null);
 
   async function callIntoWebview<T>(command: string, ...args: any): Promise<T> {
     id++;
@@ -40,17 +43,58 @@ function App(): JSX.Element {
     return Promise.race<T>([promise, timeout]);
   }
 
-  function sendGM() {
+  function connectRandomWallet() {
     return async () => {
-      const res: [any] = await callIntoWebview("sendGM", "RECIPIENT ADDRESS HERE");
-      setResult(JSON.stringify(res));
+      const address: string = await callIntoWebview("connectRandomWallet");
+      setAddressText(address);
+      setConnected(true);
+      getConversations();
     };
+  }
+
+  function getConversations() {
+    return async () => {
+      const conversations: [any] = await callIntoWebview("listConversations");
+      setConversations(conversations);
+    };
+  }
+
+  /**
+ * Show a `FlatList` of conversations for the current XMTP user.
+ *
+ * This triggers {@param onPressTopic} when the user selects a conversation.
+ */
+  function ConversationList({
+    onPressTopic,
+  }: {
+    onPressTopic: (topic: string) => void;
+  }) {
+    if (!conversations) {
+      return null;
+    }
+    return (
+      <FlatList
+        data={conversations}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => onPressTopic(item.topic)}
+            style={styles.conversationItemContainer}
+          >
+            <Text style={styles.conversationItemPeer}>
+              {item.peerAddress}
+            </Text>
+            <Text style={styles.conversationItemTopic}>{item.topic}</Text>
+          </TouchableOpacity>
+        )}
+        keyExtractor={(item) => item.topic}
+      />
+    );
   }
 
   const source = Platform.OS === 'ios' ? require("./html/dist/index.html") : { uri: "file:///android_asset/index.html" }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView >
       <WebView
         style={{ flex: 1, height: 300, width: 300 }}
         ref={webView}
@@ -82,10 +126,44 @@ function App(): JSX.Element {
           delete promises[response.id];
         }}
       />
-      <Text style={{ marginTop: 100 }}>{result}</Text>
-      <Button title="Send GM from Random Wallet" onPress={sendGM()} />
+      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
+        <Text selectable={true} style={{ marginTop: 32, width: '100%', textAlign: 'center' }}>{addressText}</Text>
+      </View>
+      { connected ? <Button title="Refresh Conversations" onPress={getConversations()} /> : <Button title="Connect Random Wallet" onPress={connectRandomWallet()} /> }
+      { connected ? <ConversationList onPressTopic={setTopic} /> : null }
     </SafeAreaView>
   );
 }
+
+/// Helpers
+
+const styles = StyleSheet.create({
+  conversationItemContainer: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+  },
+  conversationItemPeer: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  conversationItemTopic: {
+    marginTop: 8,
+    fontFamily: 'Courier',
+    fontSize: 9,
+    fontWeight: '400',
+  },
+  messagesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 35,
+  },
+  messageText: {
+    textAlign: 'left',
+    fontSize: 20,
+    fontWeight: '400',
+  },
+  closeButton: { margin: 20 },
+});
 
 export default App;
