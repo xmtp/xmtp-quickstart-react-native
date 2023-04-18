@@ -1,5 +1,15 @@
 import React, { useRef, useState } from "react";
-import { SafeAreaView, Text, Button, Platform, FlatList, TouchableOpacity, StyleSheet, View } from "react-native";
+import { 
+  SafeAreaView, 
+  Text, 
+  Button, 
+  Platform, 
+  FlatList, 
+  TouchableOpacity, 
+  StyleSheet, 
+  View, 
+  Modal 
+} from "react-native";
 import { WebView } from "react-native-webview";
 
 let id = 0;
@@ -19,6 +29,8 @@ function App(): JSX.Element {
   const [topic, setTopic] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [conversations, setConversations] = useState<{ [id: string]: string }[] | null>(null);
+  const [messages, setMessages] = useState<{ [id: string]: string }[] | null>(null);
+  const source = Platform.OS === 'ios' ? require("./html/dist/index.html") : { uri: "file:///android_asset/index.html" }
 
   async function callIntoWebview<T>(command: string, ...args: any): Promise<T> {
     id++;
@@ -59,11 +71,19 @@ function App(): JSX.Element {
     };
   }
 
+  function getMessages(topic: string) {
+    return async () => {
+      const messages: [any] = await callIntoWebview("listMessages", topic);
+      console.log("messages fetch", JSON.stringify(messages));
+      setMessages(messages);
+    };
+  }
+
   /**
- * Show a `FlatList` of conversations for the current XMTP user.
- *
- * This triggers {@param onPressTopic} when the user selects a conversation.
- */
+  * Show a `FlatList` of conversations for the current XMTP user.
+  *
+  * This triggers {@param onPressTopic} when the user selects a conversation.
+  */
   function ConversationList({
     onPressTopic,
   }: {
@@ -77,11 +97,12 @@ function App(): JSX.Element {
         data={conversations}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => onPressTopic(item.topic)}
+            onPress={() => { getMessages(item.topic); onPressTopic(item.topic); }}
             style={styles.conversationItemContainer}
           >
             <Text style={styles.conversationItemPeer}>
               {item.peerAddress}
+
             </Text>
             <Text style={styles.conversationItemTopic}>{item.topic}</Text>
           </TouchableOpacity>
@@ -91,7 +112,46 @@ function App(): JSX.Element {
     );
   }
 
-  const source = Platform.OS === 'ios' ? require("./html/dist/index.html") : { uri: "file:///android_asset/index.html" }
+  /**
+  * Show a {@link Modal} listing messages for the conversation {@param topic}.
+  *
+  * The {@link Modal} is not visible when {@param topic} is absent.
+  * This triggers {@param onClose} when the user dismisses the modal.
+  */
+  function ConversationModal({
+    topic,
+    onClose,
+  }: {
+    topic: string | null;
+    onClose: () => void;
+  }) {
+    return (
+      <Modal
+        visible={!!topic}
+        animationType={'slide'}
+        statusBarTranslucent
+        onDismiss={onClose}
+        onRequestClose={onClose}
+      >
+        <View style={styles.messagesContainer}>
+          <FlatList
+            data={messages}
+            ListHeaderComponent={
+              <View style={styles.closeButton}>
+                <Button onPress={onClose} title="Close" />
+              </View>
+            }
+            renderItem={({ item }) => (
+              <Text style={styles.messageText}>
+                {item.senderAddress}&gt; {item.text}
+              </Text>
+            )}
+            keyExtractor={({ id }) => id}
+          />
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <SafeAreaView >
@@ -131,6 +191,7 @@ function App(): JSX.Element {
       </View>
       { connected ? <Button title="Refresh Conversations" onPress={getConversations()} /> : <Button title="Connect Random Wallet" onPress={connectRandomWallet()} /> }
       { connected ? <ConversationList onPressTopic={setTopic} /> : null }
+      <ConversationModal topic={topic} onClose={() => setTopic(null)} />
     </SafeAreaView>
   );
 }

@@ -22,6 +22,24 @@ const commands = {
 
     return result;
   },
+  listMessages: async (topic: string): Promise<{ [id: string]: string }[]> => {
+    const result: { [id: string]: string }[] = [];
+
+    const conversations = await client.conversations.list();
+    const conversation = conversations.find(convo => convo.topic === topic);
+    
+    if (conversation) {
+      for (const message of await conversation.messages()) {
+        const messageMap: { [id: string]: string } = {}
+        messageMap['id'] = message.id;
+        messageMap['senderAddress'] = message.senderAddress;
+        messageMap["text"] = message.content
+        result.push(messageMap);
+      }
+    }
+
+    return result;
+  },
 } as { [key: string]: (...args: any) => Promise<any> };
 
 document.handle = async function (id: string, command: string, args: any) {
