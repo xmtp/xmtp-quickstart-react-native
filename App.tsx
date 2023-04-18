@@ -73,8 +73,8 @@ function App(): JSX.Element {
 
   function getMessages(topic: string) {
     return async () => {
+      console.log("messages fetch", "test");
       const messages: [any] = await callIntoWebview("listMessages", topic);
-      console.log("messages fetch", JSON.stringify(messages));
       setMessages(messages);
     };
   }
