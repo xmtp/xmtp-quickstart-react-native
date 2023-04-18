@@ -26,7 +26,6 @@ type WebviewResponse = {
 function App(): JSX.Element {
   const webView = useRef<WebView | null>(null);
   const [addressText, setAddressText] = useState("No Connected Address");
-  const [topic, setTopic] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [conversations, setConversations] = useState<{ [id: string]: string }[] | null>(null);
   const [messages, setMessages] = useState<{ [id: string]: string }[] | null>(null);
@@ -73,7 +72,6 @@ function App(): JSX.Element {
 
   function getMessages(topic: string) {
     return async () => {
-      console.log("messages fetch", "test");
       const messages: [any] = await callIntoWebview("listMessages", topic);
       setMessages(messages);
     };
@@ -84,11 +82,7 @@ function App(): JSX.Element {
   *
   * This triggers {@param onPressTopic} when the user selects a conversation.
   */
-  function ConversationList({
-    onPressTopic,
-  }: {
-    onPressTopic: (topic: string) => void;
-  }) {
+  function ConversationList() {
     if (!conversations) {
       return null;
     }
@@ -97,13 +91,10 @@ function App(): JSX.Element {
         data={conversations}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => { getMessages(item.topic); onPressTopic(item.topic); }}
+            onPress={getMessages(item.topic)}
             style={styles.conversationItemContainer}
           >
-            <Text style={styles.conversationItemPeer}>
-              {item.peerAddress}
-
-            </Text>
+            <Text style={styles.conversationItemPeer}>{item.peerAddress}</Text>
             <Text style={styles.conversationItemTopic}>{item.topic}</Text>
           </TouchableOpacity>
         )}
@@ -118,16 +109,9 @@ function App(): JSX.Element {
   * The {@link Modal} is not visible when {@param topic} is absent.
   * This triggers {@param onClose} when the user dismisses the modal.
   */
-  function ConversationModal({
-    topic,
-    onClose,
-  }: {
-    topic: string | null;
-    onClose: () => void;
-  }) {
+  function ConversationModal({ onClose }: { onClose: () => void; }) {
     return (
       <Modal
-        visible={!!topic}
         animationType={'slide'}
         statusBarTranslucent
         onDismiss={onClose}
@@ -142,9 +126,14 @@ function App(): JSX.Element {
               </View>
             }
             renderItem={({ item }) => (
-              <Text style={styles.messageText}>
-                {item.senderAddress}&gt; {item.text}
-              </Text>
+              <View>
+                <Text style={styles.conversationItemTopic}>
+                  {item.senderAddress}
+                </Text>
+                <Text style={styles.messageText}>
+                  {item.text}
+                </Text>
+              </View>
             )}
             keyExtractor={({ id }) => id}
           />
@@ -190,8 +179,8 @@ function App(): JSX.Element {
         <Text selectable={true} style={{ marginTop: 32, width: '100%', textAlign: 'center' }}>{addressText}</Text>
       </View>
       { connected ? <Button title="Refresh Conversations" onPress={getConversations()} /> : <Button title="Connect Random Wallet" onPress={connectRandomWallet()} /> }
-      { connected ? <ConversationList onPressTopic={setTopic} /> : null }
-      <ConversationModal topic={topic} onClose={() => setTopic(null)} />
+      { connected ? <ConversationList /> : null }
+      { messages ? <ConversationModal onClose={() => setMessages(null)} /> : null }
     </SafeAreaView>
   );
 }
