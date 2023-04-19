@@ -8,7 +8,8 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   View, 
-  Modal 
+  Modal,
+  TextInput, 
 } from "react-native";
 import { WebView } from "react-native-webview";
 
@@ -29,6 +30,7 @@ function App(): JSX.Element {
   const [connected, setConnected] = useState(false);
   const [conversations, setConversations] = useState<{ [id: string]: string }[] | null>(null);
   const [messages, setMessages] = useState<{ [id: string]: string }[] | null>(null);
+  const [topic, setTopic] = useState<string | null>(null);
   const source = Platform.OS === 'ios' ? require("./html/dist/index.html") : { uri: "file:///android_asset/index.html" }
 
   async function callIntoWebview<T>(command: string, ...args: any): Promise<T> {
@@ -73,6 +75,14 @@ function App(): JSX.Element {
   function getMessages(topic: string) {
     return async () => {
       const messages: [any] = await callIntoWebview("listMessages", topic);
+      setTopic(topic);
+      setMessages(messages);
+    };
+  }
+
+  function sendMessage(message: string) {
+    return async () => {
+      const messages: [any] = await callIntoWebview("sendMessage", message, topic);
       setMessages(messages);
     };
   }
@@ -110,12 +120,11 @@ function App(): JSX.Element {
   * This triggers {@param onClose} when the user dismisses the modal.
   */
   function ConversationModal({ onClose }: { onClose: () => void; }) {
+    const [inputText, onChangeInputText] = React.useState('');
+
     return (
       <Modal
-        animationType={'slide'}
         statusBarTranslucent
-        onDismiss={onClose}
-        onRequestClose={onClose}
       >
         <View style={styles.messagesContainer}>
           <FlatList
@@ -138,6 +147,17 @@ function App(): JSX.Element {
             keyExtractor={({ id }) => id}
           />
         </View>
+        <TextInput
+          style={styles.input}
+          onChangeText={onChangeInputText}
+          value={inputText}
+          placeholder="Send message"
+          onSubmitEditing={() => { onChangeInputText(""); sendMessage(inputText) }}
+        />
+        <View style={{ marginBottom: 20 }}>
+          <Button title="Send" onPress={sendMessage(inputText)}/>
+        </View>
+
       </Modal>
     );
   }
@@ -214,6 +234,13 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   closeButton: { margin: 20 },
+  input: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 15
+  },
 });
 
 export default App;
