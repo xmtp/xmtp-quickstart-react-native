@@ -61,9 +61,9 @@ function App(): JSX.Element {
   function connectRandomWallet() {
     return async () => {
       // NOTE: react-native-sdk testing
-      const client = Client.createRandom('dev');
-      const rnSDKAddress = await client.getAddress();
-      const address: string = await callIntoWebview("connectRandomWallet");
+      const client = await Client.createRandom('dev');
+      const rnSDKAddress = await client.address;
+      // const address: string = await callIntoWebview("connectRandomWallet");
       setAddressText('react-native-sdk npm address: ' + rnSDKAddress);
       setConnected(true);
       getConversations();
