@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 
+import { Client } from '@xmtp/react-native-sdk';
+
 let id = 0;
 const promises = {} as {
   [key: string]: [(arg: any) => void, (arg: any) => void];
@@ -58,8 +60,11 @@ function App(): JSX.Element {
 
   function connectRandomWallet() {
     return async () => {
+      // NOTE: react-native-sdk testing
+      const client = Client.createRandom('dev');
+      const rnSDKAddress = await client.getAddress();
       const address: string = await callIntoWebview("connectRandomWallet");
-      setAddressText(address);
+      setAddressText('react-native-sdk npm address: ' + rnSDKAddress);
       setConnected(true);
       getConversations();
     };
