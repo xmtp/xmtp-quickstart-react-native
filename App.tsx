@@ -11,9 +11,7 @@ import {
   Modal,
   TextInput, 
 } from "react-native";
-import { WebView } from "react-native-webview";
-
-import { Client } from '@xmtp/react-native-sdk';
+import { Client, Conversation, DecodedMessage } from '@xmtp/react-native-sdk';
 
 let id = 0;
 const promises = {} as {
@@ -27,41 +25,18 @@ type WebviewResponse = {
 };
 
 function App(): JSX.Element {
-  const webView = useRef<WebView | null>(null);
   const [addressText, setAddressText] = useState("No Connected Address");
   const [connected, setConnected] = useState(false);
-  const [conversations, setConversations] = useState<{ [id: string]: string }[] | null>(null);
-  const [messages, setMessages] = useState<{ [id: string]: string }[] | null>(null);
-  const [topic, setTopic] = useState<string | null>(null);
-  const source = Platform.OS === 'ios' ? require("./html/dist/index.html") : { uri: "file:///android_asset/index.html" }
-
-  async function callIntoWebview<T>(command: string, ...args: any): Promise<T> {
-    id++;
-    const timeout = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('Promise timed out'));
-      }, 10000);
-    });
-
-    const promise = new Promise<T>((resolve, reject) => {
-      webView.current?.injectJavaScript(`
-      document.handle("${id}", ${JSON.stringify(command)}, ${JSON.stringify(
-        args
-      )})
-
-      true
-    `);
-
-      promises[String(id)] = [resolve, reject];
-    });
-
-    return Promise.race<T>([promise, timeout]);
-  }
+  const [client, setClient] = useState<Client | undefined>(undefined);
+  const [conversations, setConversations] = useState<Conversation[] | undefined>(undefined);
+  const [messages, setMessages] = useState<DecodedMessage[] | undefined>(undefined);
+  const [conversation, setConversation] = useState<Conversation | undefined>(undefined);
 
   function connectRandomWallet() {
     return async () => {
       // NOTE: react-native-sdk testing
-      const client = await Client.createRandom('dev');
+      const client = await Client.createRandom('dev')
+      setClient(client);
       const rnSDKAddress = await client.address;
       // const address: string = await callIntoWebview("connectRandomWallet");
       setAddressText('react-native-sdk npm address: ' + rnSDKAddress);
@@ -72,23 +47,23 @@ function App(): JSX.Element {
 
   function getConversations() {
     return async () => {
-      const conversations: [any] = await callIntoWebview("listConversations");
+      const conversations = await client?.conversations.list();
       setConversations(conversations);
     };
   }
 
-  function getMessages(topic: string) {
+  function getMessages(conversation: Conversation) {
     return async () => {
-      const messages: [any] = await callIntoWebview("listMessages", topic);
-      setTopic(topic);
+      const messages = await conversation?.messages();
+      setConversation(conversation);
       setMessages(messages);
     };
   }
 
   function sendMessage(message: string) {
     return async () => {
-      const messages: [any] = await callIntoWebview("sendMessage", message, topic);
-      setMessages(messages);
+      await conversation?.send(message);
+      getMessages(conversation!!);
     };
   }
 
@@ -106,7 +81,7 @@ function App(): JSX.Element {
         data={conversations}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={getMessages(item.topic)}
+            onPress={getMessages(item)}
             style={styles.conversationItemContainer}
           >
             <Text style={styles.conversationItemPeer}>{item.peerAddress}</Text>
@@ -145,7 +120,7 @@ function App(): JSX.Element {
                   {item.senderAddress}
                 </Text>
                 <Text style={styles.messageText}>
-                  {item.text}
+                  {item.content}
                 </Text>
               </View>
             )}
@@ -169,37 +144,6 @@ function App(): JSX.Element {
 
   return (
     <SafeAreaView >
-      <WebView
-        style={{ flex: 1, height: 300, width: 300 }}
-        ref={webView}
-        source={source}
-        javaScriptEnabled={true}
-        onLoad={(e) => {
-          console.log("webview loaded", e.target.toString());
-        }}
-        onError={(syntheticEvent) => {
-          const { nativeEvent } = syntheticEvent;
-          console.warn("WebView error: ", nativeEvent);
-        }}
-        originWhitelist={["*"]}
-        onMessage={(event) => {
-          const { data } = event.nativeEvent;
-          console.log("got a message", data);
-          const response: WebviewResponse = JSON.parse(data);
-          console.log("got a response", response);
-
-          const [resolve, reject] = promises[response.id];
-
-          if (response.error) {
-            console.log("oh no error", response.error);
-            reject(new Error(response.error));
-          } else {
-            resolve(JSON.parse(response.result));
-          }
-
-          delete promises[response.id];
-        }}
-      />
       <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
         <Text selectable={true} style={{ marginTop: 32, width: '100%', textAlign: 'center' }}>{addressText}</Text>
       </View>
