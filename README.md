@@ -1,18 +1,22 @@
-# XMTP Example
+# XMTP React Native quickstart example app
 
-This example shows you how to create a basic xmpt react native app that calls through to `xmtp-js` via a webview. We are working towards making this more full featured and you can follow the progress here: https://github.com/xmtp/xmtp-quickstart-react-native/issues/2
+Use this quickstart example app to learn how to create a basic XMTP React Native app that calls through to [`@xmtp/react-native-sdk`](https://github.com/xmtp/xmtp-react-native).
 
-***Note: This is necessary because the JS engine React Native uses (Hermes) does not work with our crypto and polyfills (you can see an example using that here: https://github.com/xmtp/example-chat-react-native)***
+## Run the example app 🚀
 
-Long term we plan to have a React Native SDK that will be easy to integrate with and also performant. You can follow the progress of that here: https://github.com/xmtp/xmtp-react-native/issues/11
+1. Follow the [React Native guide](https://reactnative.dev/docs/environment-setup?platform=android) to set up a CLI environment.
+2. Run `npm install`.
+3. Run `npm run ios` or `npm run android`.
 
-## 🚀 How to use
+## Get started building your own React Native app
 
-- Run `yarn` or `npm install`
-- Run `cd html` to go into the html folder
-- Run `npm run build` to generate the single page html
-- Run `cd ..` to get back to the main folder
-- Run `cp html/dist/index.html android/app/src/main/assets` to copy the html into a folder android can see
-- Run `yarn start` or `npm run start` to try it out.
-- Wait until the app is built and downloaded. Press "run again" to reload the app and splash screen.
+1. Run `npx react-native init AwesomeChatProject`.
+2. Run `npx install-expo-modules@latest`.
+3. Run `npm install expo`.
+4. Run `npm i @xmtp/react-native-sdk`.
+5. In the `android` directory, update the `build.gradle` file to use `minSdkVersion = 22`. This is required by XMTP.
+6. In the `ios` directory, update the `Podfile` file as follows: 
+   - Set this value: `platform :ios, '16.0'`. This is required by XMTP.
+   - Add this line: `pod 'secp256k1.swift', :modular_headers => true`. This is required for web3.swift.
 
+You're now ready to build your own React Native chat app with XMTP!
