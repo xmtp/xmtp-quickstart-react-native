@@ -4,9 +4,9 @@ Use this quickstart example app to learn how to create a basic XMTP React Native
 
 ## Run the example app 🚀
 
-1. Run `npm install`.
-2. Run `npm run start`.
-3. Wait until the app is built and downloaded. Press "r" to reload the app and splash screen.
+1. Follow the [React Native guide](https://reactnative.dev/docs/environment-setup?platform=android) to set up a CLI environment.
+2. Run `npm install`.
+3. Run `npm run ios` or `npm run android`.
 
 ## Get started building your own React Native app
 
