@@ -1,22 +1,22 @@
-# XMTP Example
+# XMTP React Native quickstart example app
 
-This example shows you how to create a basic xmpt react native app that calls through to `@xmtp/react-native-sdk`
+Use this quickstart example app to learn how to create a basic XMTP React Native app that calls through to [`@xmtp/react-native-sdk`](https://github.com/xmtp/xmtp-react-native).
 
-## 🚀 How to use
+## Run the example app 🚀
 
-- Run `npm install`
-- Run `npm run start` to try it out.
-- Wait until the app is built and downloaded. Press "run again" to reload the app and splash screen.
+1. Run `npm install`.
+2. Run `npm run start`.
+3. Wait until the app is built and downloaded. Press "r" to reload the app and splash screen.
 
-## Getting setup on your own
+## Get started building your own React Native app
 
-- Run `npx react-native init AwesomeChatProject`
-- Run `npx install-expo-modules@latest`
-- Run `npm install expo`
-- Run `npm i @xmtp/react-native-sdk`
-- Then navigate to the `build.gradle` file inside the android director and update the minSDK to 22 which is required for XMTP
-- Then navigate to the `Podfile` in the ios directory and update the min version to 16 which is required for XMTP
-  - Also add this line `pod 'secp256k1.swift', :modular_headers => true` required for web3.swift
-- Now you should be able to build your own chat app
+1. Run `npx react-native init AwesomeChatProject`.
+2. Run `npx install-expo-modules@latest`.
+3. Run `npm install expo`.
+4. Run `npm i @xmtp/react-native-sdk`.
+5. In the `android` directory, update the `build.gradle` file to use `minSdkVersion = 22`. This is required by XMTP.
+6. In the `ios` directory, update the `Podfile` file as follows: 
+   - Set this value: `platform :ios, '16.0'`. This is required by XMTP.
+   - Add this line: `pod 'secp256k1.swift', :modular_headers => true`. This is required for web3.swift.
 
-
+You're now ready to build your own React Native chat app with XMTP!
